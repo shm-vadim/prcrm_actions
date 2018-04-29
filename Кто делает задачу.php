@@ -7,22 +7,61 @@ or ($time >= LUNCH_START and $time < LUNCH_FINISH)
 or isDayOff($day);
     }
     
-function getWorkedTime($startTime, $curTime) {
+    function counter($name) {
+    static $i=0;
+    $limit=1000000;
+    if (++$i>=$limit) {
+    echo $limit;
+    stop($name);
+    }
+    }
+    
+    function getUserDoneTime($tasks) {
+    $doneTime=$curTime=time();
+    
+    foreach ($tasks as $task) {
+    if (dt::isRealDbTime($task['finish'])) continue;
+    
+    $taskStart=$task['start'];
+    $startTime=(dt::isRealDbTime($taskStart)) ? dt::createFromDb($taskStart)->getTimestamp() : $doneTime;
+    while (isTimeOff($startTime)) {
+    $startTime++;
+    }
+    
     $workedTime=0;
     while ($startTime<$curTime) {
     if (!isTimeOff($startTime)) $workedTime++;
 $startTime++;
     }
-   return $workedTime;
-}
-
-function getDoneTime($doneTime, $taskDur) {
-$workedTime=0;
-    while ($workedTime<$taskDur) {
+    
+    while ($workedTime<$task['taskDur']*HOUR) {
     if (!isTimeOff($doneTime)) $workedTime++;
 $doneTime++;
     }
-return $doneTime;
+}
+
+while ($doneTime != $curTime and isTimeOff($doneTime)) {
+$doneTime++;
+}
+
+return dt::createFromTimestamp($doneTime);
+}
+
+function stop($var) {
+die(var_dump($var));
+}
+
+if (isset($_GET["owner"]) or isset($_GET["seo"]) or isset($_GET["site"]) ){
+if ($owner=$_GET['owner']) $line['Исполнитель по задаче'] = $owner;
+if ($fl=$_GET["fl"]) $line['']=implode("-",$fl);
+//if ($site=$_GET["site"]) $line['Команда этого проекта SITE ']=implode("\r\n",$site);
+//if ($seo=$_GET["seo"]) $line['Команда этого проекта SEO'] = implode("\r\n",$seo);
+$line['Назначен ли ответственный?'] = form_input($_GET['selected']);
+
+echo "<script>
+window.opener.location.reload(true);
+window.close();
+</script>";
 }
 
 function defineTimeConsts() {
@@ -51,61 +90,17 @@ function isDayOff($time) {
 return date('N', $time) >= 6;
 }
 
-function getDayStart($time=null) {
-if ($time === null) $time=time();
-return DAY * ((int) ($time / DAY));
-}
-
-    function counter($name) {
-    static $i=0;
-    $limit=1000000;
-    if (++$i>=$limit) {
-    echo $limit;
-    stop($name);
-    }
-    }
-    
-    function getUserDoneTime($tasks) {
-    $doneTime=$curTime=time();
-    
-    foreach ($tasks as $task) {
-    if (dt::isRealDbTime($task['finish'])) continue;
-    
-    $taskStart=$task['start'];
-    $startTime=(dt::isRealDbTime($taskStart)) ? dt::createFromDb($taskStart)->getTimestamp() : $doneTime;
-$workedTime=getWorkedTime($startTime, $curTime);
-$doneTime=getDoneTime($doneTime, $task['taskDur']*HOUR - $workedTime);
-
-while ($doneTime != $curTime and isTimeOff($doneTime)) {
-$doneTime++;
-}
-
-return dt::createFromTimestamp($doneTime);
-}
-
-function stop($var, $key=true) {
-if ($key) throw new Exception(json_encode($var));
-else die(var_dump($var));
-}
-
-if (isset($_GET["owner"]) or isset($_GET["seo"]) or isset($_GET["site"]) ){
-if ($owner=$_GET['owner']) $line['Исполнитель по задаче'] = $owner;
-//if ($site=$_GET["site"]) $line['Команда этого проекта SITE ']=implode("\r\n",$site);
-//if ($seo=$_GET["seo"]) $line['Команда этого проекта SEO'] = implode("\r\n",$seo);
-$line['Назначен ли ответственный?'] = form_input($_GET['selected']);
-
-echo "<script>
-window.opener.location.reload(true);
-window.close();
-</script>";
-}
-
 function getUserTasks($userId) {
 extract(t());
 return dbQuery("select $t.f17470 as domain, $t.f9761 as shortDesc, $t.id as taskId, $t.f5811 as task, $t.f499 as taskDur, $t.f18060 as start, $t.f504 as finish,  $c.f435 as company from  $t 
 join $c on($t.f1067 = $c.id)
 where  $t.status = 0 and $t.f501 != 'Да' and ($t.f492 = $userId or $t.f492 = '-$userId-')
 order by $t.id asc");
+}
+
+function getDayStart($time=null) {
+if ($time === null) $time=time();
+return DAY * ((int) ($time / DAY));
 }
 
 class dt extends DateTime{
@@ -166,7 +161,6 @@ if (!$idsStr=implode(', ', $ids)) $idsStr='null';
 $sql="select
 $u.id,
 $u.fio as `name`,
-$g.name as `group`,
 $s.f484 as post,
 $s.f18340 as postComment,
 $s.f5841 as dept,
@@ -383,6 +377,7 @@ margin-bottom: 50px;
 <th>Всего задач <br> в работе</th>
 <th>Какие именно?</th>
 <th>Кто делает?</th>
+<th>Подать запрос на выполнение</th>
 </thead>
 
 <?php   foreach ($users as $user) : ?>
@@ -425,6 +420,13 @@ margin-bottom: 50px;
 <li>Тек. задачи: <?= $techTasksAct ?></li>
 </ul>
 <?php endif ?>
+</td>
+<td>
+<?php if ($dept == "Фри-ланс отдел"): ?>
+<input type="checkbox" name="fl[]" value="<?=$id?>">
+<?php else :?>
+-
+<?php endif?>
 </td>
 </tr>
 <?php endforeach ?>
@@ -502,13 +504,11 @@ link.html('Подробнее');
 });
 
 var needOwnerClass='need-owner';
-var checkboxes=$('input[type=checkbox]').css('display', 'none');
 var radioButtons=$('[type=radio]');
 var submitButton=$('.submit-button').addClass(needOwnerClass);
 
 radioButtons.click(function (event) {
 submitButton.removeClass(needOwnerClass);
-checkboxes.css('display', '');
 });
 
 submitButton.click(function (event) {
