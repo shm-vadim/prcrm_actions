@@ -1,0 +1,10 @@
+[DEFAULT]
+BASEURL=http://prcrm.ru/user_button.php?id=41&line_id=24
+[{000214A0-0000-0000-C000-000000000046}]
+Prop3=19,2
+[InternetShortcut]
+URL=http://prcrm.ru/user_button.php?id=41&line_id=63
+IDList=
+IconFile=http://prcrm.ru/images/favicon.png
+IconIndex=1
+HotKey=0

@@ -1,5 +1,5 @@
 if (isset($_GET["owner"])) {
-if ($owner=$_GET['owner']) $line['Исполнитель по задаче'] = $owner;
+if ($owner=$_GET['owner']) $line['Исполнитель по задаче'] = "-".implode("-", $owner)."-";
   $line['Назначен ли ответственный?'] = form_input($_GET['selected']);
 
   echo "<script>
