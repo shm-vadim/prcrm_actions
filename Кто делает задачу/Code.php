@@ -1,3 +1,16 @@
+if (isset($_GET["owner"]) or isset($_GET["seo"]) or isset($_GET["site"]) ){
+if ($owner=$_GET['owner']) $line['Исполнитель по задаче'] = $owner;
+if ($fl=$_GET["fl"]) $line['']=implode("-",$fl);
+//if ($site=$_GET["site"]) $line['Команда этого проекта SITE ']=implode("\r\n",$site);
+//if ($seo=$_GET["seo"]) $line['Команда этого проекта SEO'] = implode("\r\n",$seo);
+$line['Назначен ли ответственный?'] = form_input($_GET['selected']);
+
+echo "<script>
+window.opener.location.reload(true);
+window.close();
+</script>";
+}
+
 function isTimeOff($time) {
 $day=getDayStart($time);
 $time-=$day;
@@ -49,19 +62,6 @@ return dt::createFromTimestamp($doneTime);
 
 function stop($var) {
 die(var_dump($var));
-}
-
-if (isset($_GET["owner"]) or isset($_GET["seo"]) or isset($_GET["site"]) ){
-if ($owner=$_GET['owner']) $line['Исполнитель по задаче'] = $owner;
-if ($fl=$_GET["fl"]) $line['']=implode("-",$fl);
-//if ($site=$_GET["site"]) $line['Команда этого проекта SITE ']=implode("\r\n",$site);
-//if ($seo=$_GET["seo"]) $line['Команда этого проекта SEO'] = implode("\r\n",$seo);
-$line['Назначен ли ответственный?'] = form_input($_GET['selected']);
-
-echo "<script>
-window.opener.location.reload(true);
-window.close();
-</script>";
 }
 
 function defineTimeConsts() {
@@ -327,7 +327,7 @@ margin-top: 20px;
 
 .teams > div {
 float: left;
-margin-left: 40px;
+margin-left: 3px;
 }
 
 .owner {
@@ -360,11 +360,19 @@ margin-bottom: 50px;
 <div>
 <h2><?= $title ?></h2>
 <?php foreach($teams[$key] as $user) : ?>
-<!-- <input type="checkbox" name="<?= $key ?>[]" value="<?= $user['id'] ?>"> -->
 <?= $user['name'] ?><br>
 <?php endforeach ?>
 </div>
 <?php endforeach ?>
+<div>
+<a class="show-memo" href="#">*</a>
+<div>
+<em>
+
+после выбора ответственного необходимо зайти в задачу и проверить, чтобы в поле "ИСПОЛНИТЕЛЬ" отображалась фамилия выбранного специалиста. 
+</em>
+</div>
+</div>
 </div>
 
 <div class="owner">
@@ -436,6 +444,7 @@ margin-bottom: 50px;
 <hr>
 <input type="submit" class="submit-button" value="Сохранить">
 </form>
+<a href="/view_line2.php?table=47&filter=53&edit_mode=off&line=<?= $ID ?>">Назад к задаче</a>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script type="text/javascript">
@@ -518,6 +527,20 @@ alert('Исполнитель не выбран');
 }
 
 });
+
+new DisplayToggler({
+sources: $('.show-memo'),
+
+onHide: function(link) {
+link.html('Показать памятку');
+},
+
+onShow: function(link) {
+link.html('Скрыть памятку');
+},
+
+});
+
 </script>
 </body>
 </html>
