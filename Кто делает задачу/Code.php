@@ -34,7 +34,7 @@ or isDayOff($day);
     
     foreach ($tasks as $task) {
     if (dt::isRealDbTime($task['finish'])) continue;
-    
+
     $taskStart=$task['start'];
     $startTime=(dt::isRealDbTime($taskStart)) ? dt::createFromDb($taskStart)->getTimestamp() : $doneTime;
     while (isTimeOff($startTime)) {
@@ -92,10 +92,21 @@ return date('N', $time) >= 6;
 
 function getUserTasks($userId) {
 extract(t());
-return dbQuery("select $t.f17470 as domain, $t.f9761 as shortDesc, $t.id as taskId, $t.f5811 as task, $t.f499 as taskDur, $t.f18060 as start, $t.f504 as finish,  $c.f435 as company from  $t 
+$arr=dbQuery("select $t.f17470 as domain, $t.f9761 as shortDesc, $t.id as taskId, $t.f5811 as task, $t.f499 as taskDur, $t.f18060 as start, $t.f504 as finish,  $c.f435 as company from  $t 
 join $c on($t.f1067 = $c.id)
 where  $t.status = 0 and $t.f501 != 'Да' and ($t.f492 = $userId or $t.f492 = '-$userId-')
 order by $t.id asc");
+
+foreach ($arr as $k=>$t) {
+$res=sql_fetch_assoc(sql_query("select sum(w.f18450) as s from cb_data47 t
+join cb_data471 w on(t.id = w.f5461)
+where t.id = {$t["taskId"]} and w.status = 0 and w.f18350 in('Осн.задача', 'Доработка', 'Мелкие правки') and w.f18460 != 'Готово'"));
+
+$t["taskDur"]=$res["s"];
+$arr[$k]=$t;
+}
+
+return $arr;
 }
 
 function getDayStart($time=null) {
@@ -282,7 +293,6 @@ $users=getUsersByDepts($depts);
 (json_encode(array(
 'teams'=>$teams,
 'users'=>$users,
-
 )));
 ?>
 
