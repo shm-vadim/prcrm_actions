@@ -1,6 +1,11 @@
 if (isset($_GET["owner"]) or isset($_GET["seo"]) or isset($_GET["site"]) ){
 if ($owner=$_GET['owner']) $line['Исполнитель по задаче'] = $owner;
-if ($fl=$_GET["fl"]) $line['']=implode("-",$fl);
+if ($fl=$_GET["fl"]) {
+foreach ($fl as $id) {
+$dt=date("Y-m-d H:i:s");
+sql_query("insert into cb_data1430 (f19500, f19490, user_id, add_time, status) values ($id, $ID, {$user["id"]}, '$dt', 2)");
+}
+}
 //if ($site=$_GET["site"]) $line['Команда этого проекта SITE ']=implode("\r\n",$site);
 //if ($seo=$_GET["seo"]) $line['Команда этого проекта SEO'] = implode("\r\n",$seo);
 $line['Назначен ли ответственный?'] = form_input($_GET['selected']);
@@ -454,7 +459,7 @@ margin-bottom: 50px;
 <hr>
 <input type="submit" class="submit-button" value="Сохранить">
 </form>
-<a href="/view_line2.php?table=47&filter=53&edit_mode=off&line=<?= $ID ?>">Назад к задаче</a>
+<a href="/view_line2.php?table=47&filter=53&line=<?= $ID ?>">Назад к задаче</a>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script type="text/javascript">
