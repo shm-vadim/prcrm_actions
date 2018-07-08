@@ -17,6 +17,7 @@ window.close();
 }
 
 class DB {
+
 public static function query($sql) {
 //echo nl2br($sql).'<hr>';
 $result=sql_query($sql);
@@ -27,6 +28,25 @@ $arr[]=$row;
 }
 
 return $arr;
+}
+
+public static function val($sql) {
+foreach (self::query($sql) as $row) {
+foreach ($row as $val) {
+return $val;
+}
+}
+}
+
+public static function col($sql) {
+$col=array();
+foreach(self::query($sql) as $row) {
+foreach ($row as $val) {
+$col[]=$val;
+break;
+}
+}
+return $col;
 }
 }
 
@@ -80,7 +100,9 @@ return dt::createFromTimestamp($doneTime);
 }
 
 function hasTask($tId, $uId) {
-
+extract(t());
+return DB::val("select count(*) from  $t 
+where  $t.id = $tId and $t.status = 0 and ($t.f492 = $uId or $t.f492 = '-$uId-')");
 }
 
 function stop($var) {
@@ -451,7 +473,7 @@ margin-bottom: 50px;
 </td>
 <td>
 <?php if ($status != "Задачи не ставим") : ?>
-<input type="radio" name="owner" value="<?= $id ?>" <?= hasTask($ID, $tasks) ? "checked" : "" ?>>
+<input type="radio" name="owner" value="<?= $id ?>" <?= hasTask($ID, $id) ? "checked" : "" ?>>
 <?php else : ?>
 Задачи не ставим<br>
 <a class="show-details" href="#">*</a>
