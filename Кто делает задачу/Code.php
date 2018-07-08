@@ -65,6 +65,16 @@ $doneTime++;
 return dt::createFromTimestamp($doneTime);
 }
 
+function hasTask($id, $ts) {
+$has=false;
+foreach ($ts as $t) {
+$tId=$t["taskId"];
+echo "$id - $tId<br>";
+if ($tId == $id) $has=true;
+}
+return $has;
+}
+
 function stop($var) {
 die(var_dump($var));
 }
@@ -445,7 +455,7 @@ margin-bottom: 50px;
 </td>
 <td>
 <?php if ($status != "Задачи не ставим") : ?>
-<input type="radio" name="owner" value="<?= $id ?>">
+<input type="radio" name="owner" value="<?= $id ?>" <?= hasTask($ID, $tasks) ? "checked" : "" ?>>
 <?php else : ?>
 Задачи не ставим<br>
 <a class="show-details" href="#">*</a>
