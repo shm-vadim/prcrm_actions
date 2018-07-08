@@ -16,6 +16,20 @@ window.close();
 </script>";
 }
 
+class DB {
+public static function query($sql) {
+//echo nl2br($sql).'<hr>';
+$result=sql_query($sql);
+$arr=array();
+
+while ($row=sql_fetch_assoc($result)) {
+$arr[]=$row;
+}
+
+return $arr;
+}
+}
+
 function isTimeOff($time) {
 $day=getDayStart($time);
 $time-=$day;
@@ -65,14 +79,8 @@ $doneTime++;
 return dt::createFromTimestamp($doneTime);
 }
 
-function hasTask($id, $ts) {
-$has=false;
-foreach ($ts as $t) {
-$tId=$t["taskId"];
-echo "$id - $tId<br>";
-if ($tId == $id) $has=true;
-}
-return $has;
+function hasTask($tId, $uId) {
+
 }
 
 function stop($var) {
@@ -107,7 +115,7 @@ return date('N', $time) >= 6;
 
 function getUserTasks($userId) {
 extract(t());
-$arr=dbQuery("select $t.f17470 as domain, $t.f9761 as shortDesc, $t.id as taskId, $t.f5811 as task, $t.f499 as taskDur, $t.f18060 as start, $t.f504 as finish,  $c.f435 as company from  $t 
+$arr=DB::query("select $t.f17470 as domain, $t.f9761 as shortDesc, $t.id as taskId, $t.f5811 as task, $t.f499 as taskDur, $t.f18060 as start, $t.f504 as finish,  $c.f435 as company from  $t 
 join $c on($t.f1067 = $c.id)
 where  $t.status = 0 and $t.f501 != 'Да' and ($t.f492 = $userId or $t.f492 = '-$userId-')
 order by $t.id asc");
@@ -173,7 +181,7 @@ join $u on($s.f483=$u.id)
 WHERE $u.arc = 0 and $s.f5841 in ($depts)";
 
 $ids=array();
-foreach (dbQuery($sql) as $row) {
+foreach (DB::query($sql) as $row) {
 $ids[]=$row['id'];
 }
 
@@ -201,7 +209,7 @@ where $u.id in ($idsStr)
 order by $u.fio asc";
 
 $users=array();
-foreach(dbQuery($sql) as $user) {
+foreach(DB::query($sql) as $user) {
 $userId=$user['id'];
 $tasks=getUserTasks($userId);
 $user['tasks']=$tasks;
@@ -260,22 +268,10 @@ $users[]=$user;
 return $users;
 }
 
-function dbQuery($sql) {
-//echo nl2br($sql).'<hr>';
-$result=sql_query($sql);
-$arr=array();
-
-while ($row=sql_fetch_assoc($result)) {
-$arr[]=$row;
-}
-
-return $arr;
-}
-
 function getTeams($comId) {
 extract(t());
 if (!$comId) $comId='null';
-$res= dbQuery("select $c.f6181 as seo, $c.f6171 as site from $c where $c.id = $comId");
+$res= DB::query("select $c.f6181 as seo, $c.f6171 as site from $c where $c.id = $comId");
 
 if ($row=$res[0]) {
 $site=getUsersByList($row['site']);
