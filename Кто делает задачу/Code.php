@@ -137,17 +137,17 @@ return date('N', $time) >= 6;
 
 function getUserTasks($userId) {
 extract(t());
-$arr=DB::query("select $t.f17470 as domain, $t.f9761 as shortDesc, $t.id as taskId, $t.f5811 as task, $t.f499 as taskDur, $t.f18060 as start, $t.f504 as finish,  $c.f435 as company from  $t 
-join $c on($t.f1067 = $c.id)
-where  $t.status = 0 and $t.f501 != 'Да' and ($t.f492 = $userId or $t.f492 = '-$userId-')
-order by $t.id asc");
+$sql="select t.f17470 as domain, t.f9761 as shortDesc, t.id as taskId, t.f5811 as task, t.f499 as taskDur, t.f18060 as start, t.f504 as finish,  c.f435 as company from  $t t
+left join $c c on(t.f1067 =  c.id)
+where  t.status = '0' and t.f501 != 'Да' and (t.f492 = '$userId' or t.f492 = '-{$userId}-')
+order by t.id asc";
+$arr=DB::query($sql);
 
 foreach ($arr as $k=>$t) {
-$res=sql_fetch_assoc(sql_query("select sum(w.f18450) as s from cb_data47 t
+$t["taskDur"]=DB::val("select sum(w.f18450) as s from cb_data47 t
 join cb_data471 w on(t.id = w.f5461)
-where t.id = {$t["taskId"]} and w.status = 0 and w.f18350 in('Осн.задача', 'Доработка', 'Мелкие правки') and w.f18460 != 'Готово'"));
+where t.id = {$t["taskId"]} and w.status = 0 and w.f18350 in('Осн.задача', 'Доработка', 'Мелкие правки') and w.f18460 != 'Готово'");
 
-$t["taskDur"]=$res["s"];
 $arr[$k]=$t;
 }
 
@@ -411,6 +411,8 @@ margin-bottom: 50px;
 <div>
 <a href="#" class="show-inst">*</a>
 <div>
+<ol>
+<li>
 "В первую очередь задачи назначаются сотрудникам в офисе. Если все в офисе загружены, то подключаем исполнителей на фри-лансе. 
 В случае если нужно подключить фри-ланс исполнителя, то данную задачу мы адресуем не конкретному исполнителю, 
 а сразу всем, кто по своей специализации может выполнить данную задачу. 
@@ -420,12 +422,11 @@ margin-bottom: 50px;
 Или тому, кто первый ответил и готов начать в ближайшее время. Как только исполнитель понятен, в ДД "Кто делает задачу" снимаем галки выполнения задачи
 с других, кто получил задачу на оценку сроков". Например, поставили трем исполнителям задачу, отписался 1, с двух других галки снимаем, чтобы задача закрепилась
 за первым. "
-</div>
-</div>
-<div>
-<a class="show-memo" href="#">*</a>
-<div>
+</li>
+<li>
 <em>После выбора ответственного необходимо зайти в задачу и проверить, чтобы в поле "ИСПОЛНИТЕЛЬ" отображалась фамилия выбранного специалиста. </em>
+</li>
+</ol>
 </div>
 </div>
 </div>
