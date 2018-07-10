@@ -237,6 +237,11 @@ $tasks=getUserTasks($userId);
 $user['tasks']=$tasks;
 $tw=$user['toWhat'];
 $user['toWhat']=(dt::isRealDbTime($tw)) ? dt::createFromDb($tw) : '';
+$est=0;
+foreach ($tasks as $t) {
+if ($t["taskDur"]) $est++;
+}
+$user["estTasks"]=$est;
 $users[$userId]=$user;
 }
 
@@ -439,7 +444,7 @@ margin-bottom: 50px;
 <thead>
 <th colspan="2">Исполнитель</th>
 <th>Когда освободится?</th>
-<th>Всего задач <br> в работе</th>
+<th>Всего задач <br> в работе/оценено</th>
 <th>Какие именно?</th>
 <th>Кто делает?</th>
 <th>Подать запрос на выполнение</th>
@@ -455,7 +460,7 @@ margin-bottom: 50px;
 </td>
 <?php $doneTime=getUserDoneTime($tasks) ?>
 <td><?= ($doneTime->isPastOrNow()) ? 'Свободен' : $doneTime ?></td>
-<td><?= count($tasks) ?></td>
+<td><?= count($tasks)."/".$estTasks ?></td>
 <td>
 <?php if ($dept == $directors) : ?>
 
