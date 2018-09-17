@@ -1,220 +1,243 @@
-if (isset($_GET["owner"]) or isset($_GET["seo"]) or isset($_GET["site"]) ){
-if ($owner=$_GET['owner']) $line['Исполнитель по задаче'] = $owner;
-if ($fl=$_GET["fl"]) {
-foreach ($fl as $id) {
-$dt=date("Y-m-d H:i:s");
-sql_query("insert into cb_data1430 (f19500, f19490, user_id, add_time, status) values ($id, $ID, {$user["id"]}, '$dt', 2)");
-}
-}
+if (isset($_GET["owner"]) or isset($_GET["seo"]) or isset($_GET["site"])) {
+    if ($owner = $_GET['owner']) $line['Исполнитель по задаче'] = $owner;
+    if ($fl = $_GET["fl"]) {
+        foreach ($fl as $id) {
+            $dt = date("Y-m-d H:i:s");
+            sql_query("insert into cb_data1430 (f19500, f19490, user_id, add_time, status) values ($id, $ID, {$user["id"]}, '$dt', 2)");
+        }
+    }
 //if ($site=$_GET["site"]) $line['Команда этого проекта SITE ']=implode("\r\n",$site);
 //if ($seo=$_GET["seo"]) $line['Команда этого проекта SEO'] = implode("\r\n",$seo);
-$line['Назначен ли ответственный?'] = form_input($_GET['selected']);
+    $line['Назначен ли ответственный?'] = form_input($_GET['selected']);
 
-echo "<script>
+    echo "<script>
 window.opener.location.reload(true);
 window.close();
 </script>";
 }
 
-class DB {
+class DB
+{
 
-public static function query($sql) {
+    public static function query($sql)
+    {
 //echo nl2br($sql).'<hr>';
-$result=sql_query($sql);
-$arr=array();
+        $result = sql_query($sql);
+        $arr = array();
 
-while ($row=sql_fetch_assoc($result)) {
-$arr[]=$row;
-}
+        while ($row = sql_fetch_assoc($result)) {
+            $arr[] = $row;
+        }
 
-return $arr;
-}
-
-public static function val($sql) {
-foreach (self::query($sql) as $row) {
-foreach ($row as $val) {
-return $val;
-}
-}
-}
-
-public static function col($sql) {
-$col=array();
-foreach(self::query($sql) as $row) {
-foreach ($row as $val) {
-$col[]=$val;
-break;
-}
-}
-return $col;
-}
-}
-
-function isTimeOff($time) {
-$day=getDayStart($time);
-$time-=$day;
-
-return $time<WORK_START or $time >= WORK_FINISH 
-or ($time >= LUNCH_START and $time < LUNCH_FINISH)
-or isDayOff($day);
+        return $arr;
     }
-    
-    function counter($name) {
-    static $i=0;
-    $limit=1000000;
-    if (++$i>=$limit) {
-    echo $limit;
-    stop($name);
+
+    public static function val($sql)
+    {
+        foreach (self::query($sql) as $row) {
+            foreach ($row as $val) {
+                return $val;
+            }
+        }
     }
+
+    public static function col($sql)
+    {
+        $col = array();
+        foreach (self::query($sql) as $row) {
+            foreach ($row as $val) {
+                $col[] = $val;
+                break;
+            }
+        }
+        return $col;
     }
-    
-    function getUserDoneTime($tasks) {
-    $doneTime=$curTime=time();
-    
+}
+
+function isTimeOff($time)
+{
+    $day = getDayStart($time);
+    $time -= $day;
+
+    return $time < WORK_START or $time >= WORK_FINISH
+        or ($time >= LUNCH_START and $time < LUNCH_FINISH)
+        or isDayOff($day);
+}
+
+function counter($name)
+{
+    static $i = 0;
+    $limit = 1000000;
+    if (++$i >= $limit) {
+        echo $limit;
+        stop($name);
+    }
+}
+
+function getUserDoneTime($tasks)
+{
+    $doneTime = $curTime = time();
+
     foreach ($tasks as $task) {
-    if (dt::isRealDbTime($task['finish'])) continue;
+        if (dt::isRealDbTime($task['finish'])) continue;
 
-    $taskStart=$task['start'];
-    $startTime=(dt::isRealDbTime($taskStart)) ? dt::createFromDb($taskStart)->getTimestamp() : $doneTime;
-    while (isTimeOff($startTime)) {
-    $startTime++;
+        $taskStart = $task['start'];
+        $startTime = (dt::isRealDbTime($taskStart)) ? dt::createFromDb($taskStart)->getTimestamp() : $doneTime;
+        while (isTimeOff($startTime)) {
+            $startTime++;
+        }
+
+        $workedTime = 0;
+        while ($startTime < $curTime) {
+            if (!isTimeOff($startTime)) $workedTime++;
+            $startTime++;
+        }
+
+        while ($workedTime < $task['taskDur'] * HOUR) {
+            if (!isTimeOff($doneTime)) $workedTime++;
+            $doneTime++;
+        }
     }
-    
-    $workedTime=0;
-    while ($startTime<$curTime) {
-    if (!isTimeOff($startTime)) $workedTime++;
-$startTime++;
+
+    while ($doneTime != $curTime and isTimeOff($doneTime)) {
+        $doneTime++;
     }
-    
-    while ($workedTime<$task['taskDur']*HOUR) {
-    if (!isTimeOff($doneTime)) $workedTime++;
-$doneTime++;
-    }
+
+    return dt::createFromTimestamp($doneTime);
 }
 
-while ($doneTime != $curTime and isTimeOff($doneTime)) {
-$doneTime++;
-}
-
-return dt::createFromTimestamp($doneTime);
-}
-
-function hasTask($tId, $uId) {
-extract(t());
-return DB::val("select count(*) from  $t 
+function hasTask($tId, $uId)
+{
+    extract(t());
+    return DB::val("select count(*) from  $t 
 where  $t.id = $tId and $t.status = 0 and ($t.f492 = $uId or $t.f492 = '-$uId-')");
 }
 
-function stop($var) {
-die(var_dump($var));
+function stop($var)
+{
+    die(var_dump($var));
 }
 
-function defineTimeConsts() {
-$min=60;
-$hour=60*$min;
-$day=24*$hour;
-$toUtc=-3*$hour;
+function defineTimeConsts()
+{
+    $min = 60;
+    $hour = 60 * $min;
+    $day = 24 * $hour;
+    $toUtc = -3 * $hour;
 
-foreach(array(
-'MIN'=>$min,
-'HOUR'=>$hour,
-'DAY'=>$day,
-'TO_UTC'=>$toUtc,
-'WORK_START'=>10*$hour+$toUtc,
-'LUNCH_START'=>13*$hour+$toUtc,
-'LUNCH_FINISH'=>13*$hour+30*$min+$toUtc,
-'WORK_FINISH'=>18*$hour+30*$min+$toUtc,
-) as $key=>$val) {
-define($key, $val);
-}
+    foreach (array(
+        'MIN' => $min,
+        'HOUR' => $hour,
+        'DAY' => $day,
+        'TO_UTC' => $toUtc,
+        'WORK_START' => 10 * $hour + $toUtc,
+        'LUNCH_START' => 13 * $hour + $toUtc,
+        'LUNCH_FINISH' => 13 * $hour + 30 * $min + $toUtc,
+        'WORK_FINISH' => 18 * $hour + 30 * $min + $toUtc,
+    ) as $key => $val) {
+        define($key, $val);
+    }
 }
 
 defineTimeConsts();
 
-function isDayOff($time) {
-return date('N', $time) >= 6;
+function isDayOff($time)
+{
+    return date('N', $time) >= 6;
 }
 
-function getUserTasks($userId) {
-extract(t());
-$sql="select t.f17470 as domain, t.f9761 as shortDesc, t.id as taskId, t.f5811 as task, t.f499 as taskDur, t.f18060 as start, t.f504 as finish,  c.f435 as company from  $t t
+function getUserTasks($userId)
+{
+    extract(t());
+    $sql = "select t.f17470 as domain, t.f9761 as shortDesc, t.id as taskId, t.f5811 as task, t.f499 as taskDur, t.f18060 as start, t.f504 as finish,  c.f435 as company from  $t t
 left join $c c on(t.f1067 =  c.id)
 where  t.status = '0' and t.f501 != 'Да' and (t.f492 = '$userId' or t.f492 = '-{$userId}-')
 order by t.id asc";
-$arr=DB::query($sql);
+    $arr = DB::query($sql);
 
-foreach ($arr as $k=>$t) {
-$t["taskDur"]=DB::val("select sum(w.f18450) as s from cb_data47 t
+    foreach ($arr as $k => $t) {
+        $t["taskDur"] = DB::val("select sum(w.f18450) as s from cb_data47 t
 join cb_data471 w on(t.id = w.f5461)
 where t.id = {$t["taskId"]} and w.status = 0 and w.f18350 in('Осн.задача', 'Доработка', 'Мелкие правки') and w.f18460 != 'Готово'");
 
-$arr[$k]=$t;
+        $arr[$k] = $t;
+    }
+
+    return $arr;
 }
 
-return $arr;
+function getDayStart($time = null)
+{
+    if ($time === null) $time = time();
+    return DAY * ((int)($time / DAY));
 }
 
-function getDayStart($time=null) {
-if ($time === null) $time=time();
-return DAY * ((int) ($time / DAY));
+class dt extends DateTime
+{
+
+    public static function isRealDbTime($time)
+    {
+        if ($time && self::createFromDb($time)->setTimeZone(new DateTimeZone('UTC'))->getTimestamp() > 0) return true;
+    }
+
+    public static function createFromDb($str)
+    {
+        $dt = self::createFromFormat('Y-m-d H:i:s', $str);
+        return self::createFromTimestamp($dt->getTimeStamp());
+    }
+
+    public static function createFromTimestamp($time)
+    {
+        $dt = new self();
+        return $dt->setTimestamp($time);
+    }
+
+    public function isPastOrNow()
+    {
+        return $this->getTimestamp() <= time();
+    }
+
+    public function __toString()
+    {
+        return $this->format('d.m.y в H.i');
+    }
+
+    public function date()
+    {
+        return $this->format('d.m.y');
+    }
+
 }
 
-class dt extends DateTime{
-
-public static function isRealDbTime($time) {
-if ($time && self::createFromDb($time)->setTimeZone(new DateTimeZone('UTC'))->getTimestamp() > 0) return true;
+function t()
+{
+    return array('u' => 'cb_users', 'g' => 'cb_groups', 't' => DATA_TABLE . '47', 'c' => DATA_TABLE . '42', 's' => DATA_TABLE . '46');
 }
 
-public static function createFromDb($str) {
-$dt=self::createFromFormat('Y-m-d H:i:s', $str);
-return self::createFromTimestamp($dt->getTimeStamp());
-}
+function getUsersByDepts($deptsNames)
+{
+    $deptsArr = (is_array($deptsNames)) ? $deptsNames : array($deptsNames);
+    extract(t());
+    $depts = sprintf("'%s'", implode("', '", $deptsArr));
 
-public static function createFromTimestamp($time) {
-$dt= new self();
-return $dt->setTimestamp($time);
-}
-
-public function isPastOrNow() {
-return $this->getTimestamp() <= time();
-}
-
-public function __toString() {
-return $this->format('d.m.y в H.i');
-}
-
-public function date() {
-return $this->format('d.m.y');
-}
-
-}
-
-function t() {
-return array('u'=>'cb_users', 'g'=>'cb_groups', 't'=>DATA_TABLE.'47', 'c'=>DATA_TABLE.'42', 's'=>DATA_TABLE.'46');
-}
-
-function getUsersByDepts($deptsNames) {
-$deptsArr=(is_array($deptsNames)) ? $deptsNames : array($deptsNames);
-extract(t());
-$depts=sprintf("'%s'", implode("', '", $deptsArr));
-
-$sql="select $u.id from $s
+    $sql = "select $u.id from $s
 join $u on($s.f483=$u.id)
 WHERE $u.arc = 0 and $s.f5841 in ($depts)";
 
-$ids=array();
-foreach (DB::query($sql) as $row) {
-$ids[]=$row['id'];
+    $ids = array();
+    foreach (DB::query($sql) as $row) {
+        $ids[] = $row['id'];
+    }
+
+    return getUsersByIds($ids);
 }
 
-return getUsersByIds($ids);
-}
+function getUsersByIds($ids)
+{
+    extract(t());
+    if (!$idsStr = implode(', ', $ids)) $idsStr = 'null';
 
-function getUsersByIds($ids) {
-extract(t());
-if (!$idsStr=implode(', ', $ids)) $idsStr='null';
-
-$sql="select
+    $sql = "select
 $u.id,
 $u.fio as `name`,
 $s.f484 as post,
@@ -230,26 +253,27 @@ join $g on($u.group_id = $g.id)
 where $u.id in ($idsStr)
 order by $u.fio asc";
 
-$users=array();
-foreach(DB::query($sql) as $user) {
-$userId=$user['id'];
-$tasks=getUserTasks($userId);
-$user['tasks']=$tasks;
-$tw=$user['toWhat'];
-$user['toWhat']=(dt::isRealDbTime($tw)) ? dt::createFromDb($tw) : '';
-$est=0;
-foreach ($tasks as $t) {
-if ($t["taskDur"]) $est++;
-}
-$user["estTasks"]=$est;
-$users[$userId]=$user;
+    $users = array();
+    foreach (DB::query($sql) as $user) {
+        $userId = $user['id'];
+        $tasks = getUserTasks($userId);
+        $user['tasks'] = $tasks;
+        $tw = $user['toWhat'];
+        $user['toWhat'] = (dt::isRealDbTime($tw)) ? dt::createFromDb($tw) : '';
+        $est = 0;
+        foreach ($tasks as $t) {
+            if ($t["taskDur"]) $est++;
+        }
+        $user["estTasks"] = $est;
+        $users[$userId] = $user;
+    }
+
+    return sortUsersBy($users);
 }
 
-return sortUsersBy($users);
-}
-
-function sortUsersBy($arr) {
-$groups=array_flip(explode("\n", "
+function sortUsersBy($arr)
+{
+    $groups = array_flip(explode("\n", "
 Дизайнер
 free-lance. Оклад: Дизайнеры
 free-lance. Позадачно: Дизайнеры
@@ -277,60 +301,65 @@ free-lance. Позадачно: Тестировщики
 Руководитель отдела разработок
 Руководитель SEO - отдела
 "));//
-unset($groups['']);
+    unset($groups['']);
 
-foreach ($arr as $user) {
-$gn=$user['post'];
-if (!is_array($groups[$gn])) $groups[$gn]=array();
-$groups[$gn][]=$user;
+    foreach ($arr as $user) {
+        $gn = $user['post'];
+        if (!is_array($groups[$gn])) $groups[$gn] = array();
+        $groups[$gn][] = $user;
+    }
+
+    $users = array();
+    foreach ($groups as $group) {
+        foreach ($group as $user) {
+            $users[] = $user;
+        }
+    }
+
+    return $users;
 }
 
-$users=array();
-foreach ($groups as $group) {
-foreach ($group as $user) {
-$users[]=$user;
-}
-}
+function getTeams($comId)
+{
+    extract(t());
+    if (!$comId) $comId = 'null';
+    $res = DB::query("select $c.f6181 as seo, $c.f6171 as site from $c where $c.id = $comId");
 
-return $users;
-}
+    if ($row = $res[0]) {
+        $site = getUsersByList($row['site']);
+        $seo = getUsersByList($row['seo']);
+    } else $site = $seo = array();
 
-function getTeams($comId) {
-extract(t());
-if (!$comId) $comId='null';
-$res= DB::query("select $c.f6181 as seo, $c.f6171 as site from $c where $c.id = $comId");
-
-if ($row=$res[0]) {
-$site=getUsersByList($row['site']);
-$seo=getUsersByList($row['seo']);
-} else $site=$seo=array();
-
-return array('site'=>$site, 'seo'=>$seo);
+    return array('site' => $site, 'seo' => $seo);
 }
 
-function getUsersByList($str) {
-$pStr=preg_replace(array('#^-#', '#-$#', '#-#'), 
-array('', '', "\r\n"), 
-$str);
-return getUsersByIds(explode("\r\n", $pStr));
+function getUsersByList($str)
+{
+    $pStr = preg_replace(
+        array('#^-#', '#-$#', '#-#'),
+        array('', '', "\r\n"),
+        $str
+    );
+    return getUsersByIds(explode("\r\n", $pStr));
 }
 
-function getDepts() {
-return array(
-'Руководитель',
-'Тех. отдел',
-'Фри-ланс отдел',
-);
+function getDepts()
+{
+    return array(
+        'Руководитель',
+        'Тех. отдел',
+        'Фри-ланс отдел',
+    );
 }
 
-$teams=getTeams($line['По компании']['raw']);
-$depts=getDepts();
-$directors=$depts[0];
-$users=getUsersByDepts($depts);
+$teams = getTeams($line['По компании']['raw']);
+$depts = getDepts();
+$directors = $depts[0];
+$users = getUsersByDepts($depts);
 //die
 (json_encode(array(
-'teams'=>$teams,
-'users'=>$users,
+    'teams' => $teams,
+    'users' => $users,
 )));
 ?>
 
@@ -404,10 +433,10 @@ margin-bottom: 50px;
 <input type="hidden" name="selected" value="Да">
 
 <div class="teams">
-<?php foreach (array('seo'=>'Команда этого проекта SEO', 'site'=>'Команда проекта САЙТ') as $key=>$title) : ?>
+<?php foreach (array('seo' => 'Команда этого проекта SEO', 'site' => 'Команда проекта САЙТ') as $key => $title) : ?>
 <div>
 <h2><?= $title ?></h2>
-<?php foreach($teams[$key] as $user) : ?>
+<?php foreach ($teams[$key] as $user) : ?>
 <?= $user['name'] ?><br>
 <?php endforeach ?>
 </div>
@@ -462,7 +491,7 @@ margin-bottom: 50px;
 <th>Подать запрос на выполнение</th>
 </thead>
 
-<?php   foreach ($users as $user) : ?>
+<?php foreach ($users as $user) : ?>
 <tr>
 <?php extract($user) ?>
 <td><?= $name ?></td>
@@ -470,13 +499,13 @@ margin-bottom: 50px;
 <?= $post ?><br>
 <span class="post-comment"><?= $postComment ?></span>
 </td>
-<?php $doneTime=getUserDoneTime($tasks) ?>
+<?php $doneTime = getUserDoneTime($tasks) ?>
 <td><?= ($doneTime->isPastOrNow()) ? 'Свободен' : $doneTime ?></td>
-<td><?= count($tasks)."/".$estTasks ?></td>
+<td><?= count($tasks) . "/" . $estTasks ?></td>
 <td>
 <?php if ($dept == $directors) : ?>
 
-<?php elseif(!$tasks) : ?>
+<?php elseif (!$tasks) : ?>
 -
 <?php else : ?>
 <a class="show-tasks-list" href="#">*</a>
@@ -504,11 +533,11 @@ margin-bottom: 50px;
 <?php endif ?>
 </td>
 <td>
-<?php if ($dept == "Фри-ланс отдел"): ?>
-<input type="checkbox" name="fl[]" value="<?=$id?>">
-<?php else :?>
+<?php if ($dept == "Фри-ланс отдел") : ?>
+<input type="checkbox" name="fl[]" value="<?= $id ?>">
+<?php else : ?>
 -
-<?php endif?>
+<?php endif ?>
 </td>
 </tr>
 <?php endforeach ?>
