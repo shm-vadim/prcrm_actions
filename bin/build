@@ -1,0 +1,34 @@
+#!env php
+<?php
+
+function projectPath(string $path): string
+{
+    return sprintf('%s/../%s', __DIR__, $path);
+}
+
+function archive(string $project, array $require): void
+{
+    $lines = [];
+    $addFile = function (string $file, array  $addToEnd=[]) use (&$lines): void {
+        $lines = array_merge($lines, file($file), $addToEnd);
+    };
+
+    foreach (array_merge($require, [projectPath("$project/index.php")]) as $file) {
+        $addFile($file, ["\n", '?>', "\n\n"]);
+    }
+
+    $addFile(projectPath("$project/view.php"));
+
+
+    file_put_contents(projectPath("build/$project.php"), implode('', $lines));
+}
+
+@mkdir(projectPath('build'));
+$build = json_decode(file_get_contents(projectPath('build.json')), true);
+
+foreach ($build['project'] as $project) {
+
+    archive($project, $build['require']);
+}
+
+echo 'Completed';

@@ -1,0 +1,8 @@
+{
+  "project": [
+    "Кто делает задачу"
+  ],
+  "require": [
+    "src/functions.php"
+  ]
+}
