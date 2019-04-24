@@ -270,20 +270,20 @@ margin: 0 auto;
 
 <body>
 <form>
-<input type='hidden' name='id' value='<?= $button_id ?>'>
-<input type='hidden' name='line_id' value='<?= $ID ?>'>
+<input type='hidden' name='id' value='<?= $button_id; ?>'>
+<input type='hidden' name='line_id' value='<?= $ID; ?>'>
 <input type="hidden" name="selected" value="Да">
 
 <div class="teams">
-<?php foreach (array('seo'=>'Команда этого проекта SEO', 'site'=>'Команда проекта САЙТ') as $key=>$title) : ?>
+<?php foreach (['seo' => 'Команда этого проекта SEO', 'site' => 'Команда проекта САЙТ'] as $key => $title) : ?>
 <div>
-<h2><?= $title ?></h2>
-<?php foreach($teams[$key] as $user) : ?>
-<input type="checkbox" name="<?= $key ?>[]" value="<?= $user['id'] ?>">
-<?= $user['name'] ?><br>
-<?php endforeach ?>
+<h2><?= $title; ?></h2>
+<?php foreach ($teams[$key] as $user) : ?>
+<input type="checkbox" name="<?= $key; ?>[]" value="<?= $user['id']; ?>">
+<?= $user['name']; ?><br>
+<?php endforeach; ?>
 </div>
-<?php endforeach ?>
+<?php endforeach; ?>
 </div>
 
 <div class="owner">
@@ -300,41 +300,41 @@ margin: 0 auto;
 
 <?php   foreach ($users as $user) : ?>
 <tr>
-<?php extract($user) ?>
-  <td><?= $name ?></td>
-   <td><?= $post ?></td>
-<td><?= ($doneTime->isPastOrNow()) ? 'Свободен' : $doneTime ?></td>
-<td><?= count($tasks) ?></td>
+<?php extract($user); ?>
+  <td><?= $name; ?></td>
+   <td><?= $post; ?></td>
+<td><?= ($doneTime->isPastOrNow()) ? 'Свободен' : $doneTime; ?></td>
+<td><?= count($tasks); ?></td>
 <td>
-<?php if (!$tasks or $dept == $directors) : ?>
+<?php if (!$tasks or $dept === $directors) : ?>
 -
 <?php else : ?>
 <a class="show-tasks-list" href="#">*</a>
 
 <ol>
 <?php foreach ($tasks as $task) : ?>
-<?php extract($task) ?>
-<li><a href="/view_line2.php?table=47&filter=53&edit_mode=on&line=<?= $taskId ?>" target="blank"><?= "$company - $task" ?></a></li>
-<?php endforeach ?>
+<?php extract($task); ?>
+<li><a href="/view_line2.php?table=47&filter=53&edit_mode=on&line=<?= $taskId; ?>" target="blank"><?= "$company - $task"; ?></a></li>
+<?php endforeach; ?>
 </ol>
-<?php endif ?>
+<?php endif; ?>
 </td>
 <td>
-<?php if ($status != "Задачи не ставим") : ?>
-<input type="radio" name="owner" value="<?= $id ?>">
+<?php if ('Задачи не ставим' !== $status) : ?>
+<input type="radio" name="owner" value="<?= $id; ?>">
 <?php else : ?>
 Задачи не ставим<br>
 <a class="show-details" href="#">*</a>
 
 <ul>
-<li>Причина: <?= $reason ?></li>
-<li>До: <?= $toWhat->date() ?></li>
-<li>Тех. задачи: <?= $techTasksAct ?></li>
+<li>Причина: <?= $reason; ?></li>
+<li>До: <?= $toWhat->date(); ?></li>
+<li>Тех. задачи: <?= $techTasksAct; ?></li>
 </ul>
-<?php endif ?>
+<?php endif; ?>
 </td>
    </tr>
-<?php endforeach ?>
+<?php endforeach; ?>
 </table>
 </div>
 
