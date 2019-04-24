@@ -1,0 +1,4 @@
+#!env bash
+rm build/*
+bin/build > var/bash
+php 'build/Кто делает задачу.phar' >> var/bash

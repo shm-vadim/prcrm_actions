@@ -1,0 +1,43 @@
+#!env php
+<?php
+const PROJECT_DIRECTORY = __DIR__ . '/..';
+
+function copyDirectory(string $source, string $target): void
+{
+    if (!is_dir($source)) {
+        throw new \Exception($source);
+    }
+
+    $dir = opendir($source);
+    @mkdir($target);
+
+    while (false !== ($file = readdir($dir))) {
+        if (($file != '.') && ($file != '..')) {
+            if (is_dir($source . '/' . $file)) {
+                copyDirectory($source . '/' . $file, $target . '/' . $file);
+            } else {
+                copy($source . '/' . $file, $target . '/' . $file);
+            }
+        }
+    }
+
+    closedir($dir);
+}
+
+function archive(string $app): void
+{
+    $phar = new Phar(PROJECT_DIRECTORY . "/build/$app.phar");
+
+    foreach (['vendor' => 'vendor', 'src' => 'src', $app => 'app'] as $source => $target) {
+        copyDirectory(PROJECT_DIRECTORY . "/$source", PROJECT_DIRECTORY . "/var/build/$target");
+    }
+
+    $phar->buildFromDirectory(PROJECT_DIRECTORY . '/var/build');
+}
+
+
+foreach (json_decode(file_get_contents(PROJECT_DIRECTORY . '/build.json'), true) as $app) {
+    archive($app);
+}
+
+echo 'Completed';
