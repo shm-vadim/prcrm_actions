@@ -3,6 +3,11 @@
     "Кто делает задачу"
   ],
   "require": [
-    "src/functions.php"
+    "description.php",
+    "src/constants.php",
+    "src/functions.php",
+    "src/DB.php",
+    "src/dt.php",
+    "src/Repository/UserRepository.php"
   ]
 }

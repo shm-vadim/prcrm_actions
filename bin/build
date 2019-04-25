@@ -6,29 +6,43 @@ function projectPath(string $path): string
     return sprintf('%s/../%s', __DIR__, $path);
 }
 
-function archive(string $project, array $require): void
+function getStyledFileContent(string $file): string
 {
     $lines = [];
-    $addFile = function (string $file, array  $addToEnd=[]) use (&$lines): void {
-        $lines = array_merge($lines, file($file), $addToEnd);
-    };
 
-    foreach (array_merge($require, [projectPath("$project/index.php")]) as $file) {
-        $addFile($file, ["\n", '?>', "\n\n"]);
-    }
+    return file_get_contents(projectPath($file));
+}
 
-    $addFile(projectPath("$project/view.php"));
+function getProjectContent(string $project): string
+{
+    return getStyledFileContent("$project/index.php") . "?>\n\n" . getStyledFileContent("$project/view.php");
+}
 
+function putBuildedContent(string $filename, string $content)
+{
+    $lines = explode("\n", $content);
 
-    file_put_contents(projectPath("build/$project.php"), implode('', $lines));
+    $filteredLines = array_filter($lines, function (string $line, int $number): bool {
+        return trim($line) !== '<?php' or $number === 0;
+    }, ARRAY_FILTER_USE_BOTH);
+
+    file_put_contents(projectPath("build/$filename.php"), implode("\n", $filteredLines));
 }
 
 @mkdir(projectPath('build'));
 $build = json_decode(file_get_contents(projectPath('build.json')), true);
 
-foreach ($build['project'] as $project) {
-
-    archive($project, $build['require']);
+if (null === $build) {
+    throw new \LogicException('build.json is not valid');
 }
 
-echo 'Completed';
+$lib = array_reduce($build['require'], function (string $content, string $file): string {
+    return $content . getStyledFileContent($file);
+}, '');
+putBuildedContent('lib', $lib);
+
+foreach ($build['project'] as $project) {
+    putBuildedContent($project, $lib . getProjectContent($project));
+}
+
+echo "Completed\n";
