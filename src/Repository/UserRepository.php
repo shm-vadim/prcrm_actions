@@ -5,23 +5,21 @@ abstract class UserRepository
     /**
      * @param int|null $companyId
      */
-    public static function findTeamsByCompany($companyId): array
+    public static function findTeamsByTaskData(array $line): array
     {
-        if (null === $companyId) {
-            return ['site' => [], 'seo' => []];
-        }
-
-        $result = DB::row('select 
+        $teamsRow = DB::row(
+            'select 
 c.f6181 as seo, 
 c.f6171 as site 
-from {table.company} c 
-where c.id = {companyId}', [
-            'companyId' => $companyId,
-        ]);
+from {table.company} c
+where c.id in ({companyIdList})',
+            [
+                'companyIdList' => [$line['По компании']['raw'], $line['Домен текущего']['№'], $line['Домен старого']['№']],
+            ]);
 
-        if ($row = $result[0]) {
-            $site = self::getUsersByList($row['site']);
-            $seo = self::getUsersByList($row['seo']);
+        if (null !== $teamsRow) {
+            $site = self::getUsersByList($teamsRow['site']);
+            $seo = self::getUsersByList($teamsRow['seo']);
         } else {
             $site = $seo = [];
         }

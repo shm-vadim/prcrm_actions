@@ -20,7 +20,11 @@ window.close();
 </script>';
 }
 
-$teams = UserRepository::findTeamsByCompany($line['По компании']['raw']);
-$departments = getDepartments();
+$teams = UserRepository::findTeamsByTaskData($line);
+$departments = [
+    'Руководитель',
+    'Тех. отдел',
+    'Тех. отдел (фри-ланс)',
+];
 $directors = $departments[0];
 $users = UserRepository::findByDepartments($departments);

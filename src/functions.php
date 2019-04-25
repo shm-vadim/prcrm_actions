@@ -171,12 +171,3 @@ free-lance. Позадачно: Тестировщики
 
     return $users;
 }
-
-function getDepartments(): array
-{
-    return [
-        'Руководитель',
-        'Тех. отдел',
-        'Фри-ланс отдел',
-    ];
-}

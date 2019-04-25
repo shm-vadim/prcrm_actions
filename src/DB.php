@@ -2,7 +2,7 @@
 
 final class DB
 {
-    public const TABLES = [
+    const TABLES = [
         'user' => 'cb_users',
         'group' => 'cb_groups',
         'task' => DATA_TABLE.'47',
@@ -62,9 +62,6 @@ final class DB
         return $column;
     }
 
-    /**
-     * @return void
-     */
     private static function processSql(string &$sql, array $parameters)
     {
         self::setTables($sql);
@@ -73,13 +70,8 @@ final class DB
         if (preg_match('#[{}]#', $sql)) {
             throw new \LogicException(sprintf('"%s" query is not valid', $sql));
         }
-
-        dd($sql);
     }
 
-    /**
-     * @return void
-     */
     private static function setTables(string &$sql)
     {
         foreach (self::TABLES as $alias => $table) {
@@ -87,9 +79,6 @@ final class DB
         }
     }
 
-    /**
-     * @return void
-     */
     private static function setParameters(string &$sql, array $parameters)
     {
         foreach ($parameters as $key => $parameter) {
