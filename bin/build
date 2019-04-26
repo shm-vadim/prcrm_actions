@@ -1,0 +1,46 @@
+#!env php
+<?php
+
+function projectPath(string $path): string
+{
+    return sprintf('%s/../%s', __DIR__, $path);
+}
+
+function getStyledFileContent(string $file): string
+{
+    return file_get_contents(projectPath($file)) . "\n";
+}
+
+function getProjectContent(string $project): string
+{
+    return getStyledFileContent("$project/index.php") . "?>\n\n" . getStyledFileContent("$project/view.php");
+}
+
+function putBuildedContent(string $filename, string $content)
+{
+    $lines = explode("\n", $content);
+
+    $filteredLines = array_filter($lines, function (string $line, int $number): bool {
+        return trim($line) !== '<?php' or $number === 0;
+    }, ARRAY_FILTER_USE_BOTH);
+
+    file_put_contents(projectPath("build/$filename.php"), implode("\n", $filteredLines));
+}
+
+@mkdir(projectPath('build'));
+$build = json_decode(file_get_contents(projectPath('build.json')), true);
+
+if (null === $build) {
+    throw new \LogicException('build.json is not valid');
+}
+
+$lib = array_reduce($build['require'], function (string $content, string $file): string {
+    return $content . getStyledFileContent($file);
+}, '');
+putBuildedContent('lib', $lib);
+
+foreach ($build['project'] as $project) {
+    putBuildedContent($project, $lib . getProjectContent($project));
+}
+
+echo "Completed\n";

@@ -1,0 +1,3 @@
+#!env bash
+bin/build > var/bash
+php var/test.php >> var/bash
