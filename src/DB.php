@@ -13,12 +13,17 @@ final class DB
     public static function query(string $sql, array $parameters = [])
     {
         self::processSql($sql, $parameters);
-        //echo nl2br($sql).'<hr>';
+        dumpSQL($sql);
+
         $result = sql_query($sql);
         $resultArray = [];
 
         while ($row = sql_fetch_assoc($result)) {
             $resultArray[] = $row;
+        }
+
+        if (DUMP_SQL) {
+            dump($resultArray);
         }
 
         return $resultArray;
@@ -49,10 +54,10 @@ final class DB
         return null;
     }
 
-    public static function column($sql)
+    public static function column(string $sql, array $parameters = [])
     {
         $column = [];
-        foreach (self::query($sql) as $row) {
+        foreach (self::query($sql, $parameters) as $row) {
             foreach ($row as $val) {
                 $column[] = $val;
                 break;
@@ -86,6 +91,14 @@ final class DB
         }
     }
 
+    private static function wrapInQuotes(string $parameter): string
+    {
+        return "'$parameter'";
+    }
+
+    /**
+     * @param RegularExpressionCollectionParameter|array|string|null $parameter
+     */
     private static function processParameter($parameter): string
     {
         $processParameter = function ($parameter): string {
@@ -95,6 +108,10 @@ final class DB
 
             return "'$parameter'";
         };
+
+        if ($parameter instanceof RegularExpressionCollectionParameter) {
+            return self::wrapInQuotes(implode('|', $parameter->getCollection()));
+        }
 
         if (is_array($parameter)) {
             return implode(', ', array_map($processParameter, $parameter));

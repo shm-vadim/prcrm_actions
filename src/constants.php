@@ -1,5 +1,7 @@
 <?php
 
+const DUMP_SQL = 0;
+
 define('DATA_TABLE', 'cb_data');
 
 call_user_func(function () {

@@ -8,9 +8,7 @@ function projectPath(string $path): string
 
 function getStyledFileContent(string $file): string
 {
-    $lines = [];
-
-    return file_get_contents(projectPath($file));
+    return file_get_contents(projectPath($file)) . "\n";
 }
 
 function getProjectContent(string $project): string

@@ -14,7 +14,7 @@ c.f6171 as site
 from {table.company} c
 where c.id in ({companyIdList})',
             [
-                'companyIdList' => [$line['По компании']['raw'], $line['Домен текущего']['№'], $line['Домен старого']['№']],
+                'companyIdList' => [$line['По компании']['raw'], $line['Домен текущего']['raw'], $line['Домен старого']['raw']],
             ]);
 
         if (null !== $teamsRow) {
@@ -29,20 +29,45 @@ where c.id in ({companyIdList})',
 
     public static function findByDepartments(array $departments): array
     {
-        $sql = 'select u.id from {table.employee} s
+        $sql = 'select s.id from {table.employee} s
 join {table.user} u on(s.f483 = u.id)
-WHERE u.arc = 0 and s.f5841 in ({departments})';
+WHERE u.arc = 0 and s.f5841 regexp {departments}';
 
         $userIdList = array_map(function (array $row): int {
             return $row['id'];
         }, DB::query($sql, [
-            'departments' => $departments,
+            'departments' => new RegularExpressionCollectionParameter($departments),
         ]));
 
-        return self::getUsersByIdList($userIdList);
+        return self::getEmployeesByIdList($userIdList);
     }
 
     private static function getUsersByIdList(array $userIdList): array
+    {
+        $employeeIdList = DB::column(
+            'select e.id from {table.employee} e 
+join {table.user} u on(e.f483 = u.id)
+where u.id in({userIdList})',
+            [
+                'userIdList' => $userIdList,
+            ]
+        );
+
+        return self::getEmployeesByIdList($employeeIdList);
+    }
+
+    private static function getUsersByList(string $idListString): array
+    {
+        $processedIdListString = preg_replace(
+            ['#^-#', '#-$#', '#-#'],
+            ['', '', "\r\n"],
+            $idListString
+        );
+
+        return self::getUsersByIdList(explode("\r\n", $processedIdListString));
+    }
+
+    private static function getEmployeesByIdList(array $employeeIdList): array
     {
         $sql = 'select
 s.id,
@@ -57,12 +82,12 @@ s.f18080 as techTasksAct
 from {table.employee} s
 join {table.user} u on(s.f483 = u.id)
 join {table.group} g on(u.group_id = g.id)
-where u.id in ({userIdList})
+where s.status = 0 and s.id in ({userIdList})
 order by u.fio asc';
 
         $users = [];
 
-        foreach (DB::query($sql, ['userIdList' => $userIdList]) as $user) {
+        foreach (DB::query($sql, ['userIdList' => $employeeIdList]) as $user) {
             $userId = $user['id'];
             $tasks = getUserTasks($userId);
             $user['tasks'] = $tasks;
@@ -80,17 +105,8 @@ order by u.fio asc';
             $users[$userId] = $user;
         }
 
-        return sortUsersByGroups($users);
-    }
+        UserSorter::sortUsersByName($users);
 
-    private static function getUsersByList(string $idListString): array
-    {
-        $processedIdListString = preg_replace(
-            ['#^-#', '#-$#', '#-#'],
-            ['', '', "\r\n"],
-            $idListString
-        );
-
-        return self::getUsersByIdList(explode("\r\n", $processedIdListString));
+        return $users;
     }
 }

@@ -9,6 +9,8 @@
     "src/functions.php",
     "src/DB.php",
     "src/dt.php",
+    "src/Sort/UserSorter.php",
+    "src/SQLParameter/RegularExpressionCollectionParameter.php",
     "src/Repository/UserRepository.php"
   ]
 }

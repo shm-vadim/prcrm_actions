@@ -1,5 +1,12 @@
 <?php
 
+function dumpSQL(string $sql)
+{
+    if (DUMP_SQL) {
+        echo nl2br("\n\n$sql").'<hr>';
+    }
+}
+
 function dump($var)
 {
     var_dump($var);
