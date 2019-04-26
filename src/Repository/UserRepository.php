@@ -2,9 +2,6 @@
 
 abstract class UserRepository
 {
-    /**
-     * @param int|null $companyId
-     */
     public static function findTeamsByTaskData(array $line): array
     {
         $teamsRow = DB::row(

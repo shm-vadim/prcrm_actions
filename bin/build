@@ -20,11 +20,14 @@ function putBuildedContent(string $filename, string $content)
 {
     $lines = explode("\n", $content);
 
-    $filteredLines = array_filter($lines, function (string $line, int $number): bool {
-        return trim($line) !== '<?php' or $number === 0;
+    $filteredLines = array_filter($lines, function (string $line, int $lineNumber) use ($lines): bool {
+        $isSomeOpenPHPTag = trim($line) === '<?php' && $lineNumber !== 0;
+
+
+        return !$isSomeOpenPHPTag;
     }, ARRAY_FILTER_USE_BOTH);
 
-    file_put_contents(projectPath("build/$filename.php"), implode("\n", $filteredLines));
+        file_put_contents(projectPath("build/$filename.php"), implode("\n", $filteredLines));
 }
 
 @mkdir(projectPath('build'));
