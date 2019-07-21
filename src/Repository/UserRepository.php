@@ -66,6 +66,11 @@ where u.id in({userIdList})',
 
     private static function getEmployeesByIdList(array $employeeIdList): array
     {
+        if (empty($employeeIdList)) {
+            return [];
+        }
+
+
         $sql = 'select
 s.id,
 u.fio as `name`,
