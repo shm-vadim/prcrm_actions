@@ -3,7 +3,7 @@
 function dumpSQL(string $sql)
 {
     if (DUMP_SQL) {
-        echo nl2br("\n\n$sql").'<hr>';
+        echo nl2br("\n\n$sql") . '<hr>';
     }
 }
 
@@ -22,7 +22,7 @@ function dd($var)
 
 function getTablesAliasList(): array
 {
-    return ['u' => 'cb_users', 'g' => 'cb_groups', 't' => DATA_TABLE.'47', 'c' => DATA_TABLE.'42', 's' => DATA_TABLE.'46'];
+    return ['u' => 'cb_users', 'g' => 'cb_groups', 't' => DATA_TABLE . '47', 'c' => DATA_TABLE . '42', 's' => DATA_TABLE . '46'];
 }
 
 function getUserDoneTime(array $tasks): \DateTimeInterface
@@ -82,14 +82,14 @@ function isDayOff(int $time): bool
 
 function getDayStart(int $time): int
 {
-    return DAY * ((int) ($time / DAY));
+    return DAY * ((int)($time / DAY));
 }
 
 function hasTask(int $taskId, int $userId): bool
 {
     extract(getTablesAliasList());
 
-    return (bool) DB::value("select count(*) from  $t t
+    return (bool)DB::value("select count(*) from  $t t
 where  t.id = $taskId  and t.status = 0 and (t.f492 = $userId  or t.f492 = '-$userId-')");
 }
 
@@ -117,7 +117,7 @@ function getUserTasks(int $userId): array
 
     foreach ($arr as $k => $t) {
         $t['domain'] = $t['domain'] ?: $t['oldDomain'];
-        $t['taskDur'] = (float) DB::value("select sum(w.f18450) as s from cb_data47 t
+        $t['taskDur'] = (float)DB::value("select sum(w.f18450) as s from cb_data47 t
 join cb_data471 w on(t.id = w.f5461)
 where t.id = {$t['taskId']} and w.status = 0 and w.f18350 in('Осн.задача', 'Доработка', 'Мелкие правки') and w.f18460 != 'Готово'");
 
@@ -177,4 +177,9 @@ free-lance. Позадачно: Тестировщики
     }
 
     return $users;
+}
+
+function isFreelanser(array $user): bool
+{
+    return in_array('Фри-ланс исполнители', [$user['groupName'], $user['parentGroupName'], $user['ppGroupName']], true);
 }

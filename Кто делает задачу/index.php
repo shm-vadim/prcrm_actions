@@ -8,7 +8,7 @@ if (isset($_GET['owner']) or isset($_GET['seo']) or isset($_GET['site'])) {
     if ($freelance = $_GET['fl']) {
         foreach ($freelance as $id) {
             $dt = date('Y-m-d H:i:s');
-            sql_query("insert into cb_data1430 (f19500, f19490, user_id, add_time, status) values ($id, $ID, {$user['id']}, '$dt', 2)");
+            sql_query("insert into cb_data1430 (f19500, f19490, user_id, add_time, status) values ($id, $ID, {$user['id']}, '$dt', 0)");
         }
     }
 

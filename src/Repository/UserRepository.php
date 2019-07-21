@@ -75,11 +75,16 @@ s.f5841 as dept,
 s.f6151 as status,
 s.f18070 as reason,
 s.f5861 as toWhat,
-s.f18080 as techTasksAct
+s.f18080 as techTasksAct,
+g.name as `groupName`,
+g2.name as `ppGroupName`,
+g1.name as `parentGroupName`
 from {table.employee} s
 join {table.user} u on(s.f483 = u.id)
 join {table.group} g on(u.group_id = g.id)
-where s.status = 0 and s.id in ({userIdList})
+left join {table.group} g1 on(g.pid = g1.id)
+left join {table.group} g2 on(g1.pid = g2.id)
+where s.status = 0 and s.f20900 != "Не работаем" and s.id in ({userIdList})
 order by u.fio asc';
 
         $users = [];

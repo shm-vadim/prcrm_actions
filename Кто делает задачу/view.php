@@ -192,7 +192,7 @@
                         <?php endif; ?>
                     </td>
                     <td>
-                        <?php if ('Фри-ланс отдел' === $dept) : ?>
+                        <?php if (isFreelanser($user)) : ?>
                             <input type="checkbox" name="fl[]" value="<?= $id; ?>">
                         <?php else : ?>
                             -
